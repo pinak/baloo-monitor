@@ -34,7 +34,6 @@ int main(int argc, char** argv)
     BalooMonitor::Monitor mon;
 
     engine.rootContext()->setContextProperty("monitor", &mon);
-    QString path = QStandardPaths::locate(QStandardPaths::DataLocation, "main.qml");
     engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
 
     return app.exec();

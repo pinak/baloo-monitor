@@ -31,7 +31,6 @@ ApplicationWindow {
     height: 480
     visible: true
 
-
     Text {
         anchors.top: parent.top
         anchors.margins: 10
@@ -39,7 +38,6 @@ ApplicationWindow {
         id: url
         text: "Indexing: " + monitor.url
     }
-
 
     RowLayout {
         spacing: 20
