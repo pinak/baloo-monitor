@@ -25,6 +25,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QDBusInterface>
 
 namespace BalooMonitor {
 class Monitor : public QObject
@@ -50,7 +51,8 @@ private Q_SLOTS:
 
 private:
     QString m_url;
-    bool m_running;
+    bool m_suspended;
+    QDBusInterface m_balooInterface;
 };
 }
 #endif // MONITOR_H

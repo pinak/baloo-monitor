@@ -28,10 +28,14 @@
 using namespace BalooMonitor;
 Monitor::Monitor(QObject *parent)
     : QObject(parent)
+    , m_balooInterface(QStringLiteral("org.kde.baloo"),
+                        QStringLiteral("/indexer"),
+                        QStringLiteral("org.kde.baloo"),
+                        QDBusConnection::sessionBus(),
+                        this)
 {
-    QDBusConnection bus = QDBusConnection::sessionBus();
-    bus.connect("", "/contentindexer", "org.kde.baloo", "startedWithFile", this, SLOT(newFile(QString)));
-    bool m_running = bus.interface()->isServiceRegistered(QLatin1String("org.kde.baloo"));
+
+    QDBusReply<bool> m_suspended =  m_balooInterface.call(QStringLiteral("isSuspended"));
 }
 
 void Monitor::newFile(QString url)
@@ -42,26 +46,22 @@ void Monitor::newFile(QString url)
 
 QString Monitor::state() const
 {
-    return m_running ?  QStringLiteral("Suspend") : QStringLiteral("Resume");
+    return m_suspended ? QStringLiteral("Resume") : QStringLiteral("Suspend");
 }
 
 void Monitor::toggleState()
 {
     QString method;
 
-    if (m_running) {
-        method = QStringLiteral("suspend");
-        m_running = false;
-    } else {
+    if (m_suspended) {
         method = QStringLiteral("resume");
-        m_running = true;
+        m_suspended = false;
+    } else {
+        method = QStringLiteral("suspend");
+        m_suspended = true;
     }
 
-    QDBusMessage message = QDBusMessage::createMethodCall(QLatin1String("org.kde.baloo"),
-                                                          QLatin1String("/indexer"),
-                                                          QLatin1String("org.kde.baloo"),
-                                                          method);
-    QDBusConnection::sessionBus().call(message);
+    m_balooInterface.call(method);
     Q_EMIT stateChanged();
 }
 
