@@ -25,32 +25,44 @@
 
 #include <QObject>
 #include <QString>
+#include <QDBusInterface>
 
 namespace BalooMonitor {
 class Monitor : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString url READ url NOTIFY urlChanged)
-    Q_PROPERTY(QString state READ state NOTIFY stateChanged)
+    Q_PROPERTY(QString suspendState READ suspendState NOTIFY suspendStateChanged)
+    Q_PROPERTY(bool balooRunning READ balooState NOTIFY balooStateChanged)
 public:
     Monitor(QObject* parent = 0);
 
     // Property readers
     QString url() const { return m_url; }
-    QString state() const;
+    QString suspendState() const;
+    bool balooState() const { return m_balooRunning; }
 
-    Q_INVOKABLE void toggleState();
+    Q_INVOKABLE void toggleSuspendState();
 
 Q_SIGNALS:
     void urlChanged();
-    void stateChanged();
+    void suspendStateChanged();
+    void balooStateChanged();
 
 private Q_SLOTS:
     void newFile(QString url);
+    void balooStarted();
 
 private:
+    QDBusConnection m_bus;
+
     QString m_url;
-    bool m_running;
+
+    bool m_balooRunning;
+    bool m_suspended;
+
+    QDBusInterface* m_balooInterface;
+
 };
 }
 #endif // MONITOR_H

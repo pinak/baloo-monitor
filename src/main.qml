@@ -31,32 +31,44 @@ ApplicationWindow {
     height: 480
     visible: true
 
-    Text {
+    GridLayout {
         anchors.top: parent.top
-        anchors.margins: 10
-        x: 10
-        id: url
-        text: "Indexing: " + monitor.url
-    }
-
-    RowLayout {
-        spacing: 20
-        anchors.top: url.bottom
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.margins: 10
+        visible: monitor.balooRunning
+
+        columns: 2
+        columnSpacing: 20
+        rowSpacing: 20
+
+        Text {
+            Layout.columnSpan: 2
+            anchors.top: parent.top
+            anchors.margins: 10
+            x: 10
+            id: url
+            text: "Indexing: " + monitor.url
+        }
+
 
         ProgressBar {
             id: progress
-            x: 10
             Layout.fillWidth: true
             indeterminate: true
         }
 
         Button {
             id: toggleButton
-            text: monitor.state
-            onClicked: monitor.toggleState()
+            text: monitor.suspendState
+            onClicked: monitor.toggleSuspendState()
         }
+    }
+
+    Text {
+        visible: !monitor.balooRunning
+
+        anchors.fill: parent
+        text: qsTr("Baloo is not running!")
     }
 }

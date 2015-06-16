@@ -21,17 +21,27 @@
  */
 
 #include "monitor.h"
+
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDBusConnectionInterface>
+#include <QDebug>
 
 using namespace BalooMonitor;
 Monitor::Monitor(QObject *parent)
     : QObject(parent)
+    , m_bus(QDBusConnection::sessionBus())
+    , m_balooInterface(0)
 {
-    QDBusConnection bus = QDBusConnection::sessionBus();
-    bus.connect("", "/contentindexer", "org.kde.baloo", "startedWithFile", this, SLOT(newFile(QString)));
-    bool m_running = bus.interface()->isServiceRegistered(QLatin1String("org.kde.baloo"));
+    m_bus.connect("", "/contentindexer", "org.kde.baloo", "startedWithFile", this, SLOT(newFile(QString)));
+    //TODO: export signal from baloo to let the monitor know it has started and connect it to balooStarted()
+
+    if (m_bus.interface()->isServiceRegistered(QLatin1String("org.kde.baloo"))) {
+        // baloo is already running
+        balooStarted();
+    } else {
+        m_balooRunning = false;
+    }
 }
 
 void Monitor::newFile(QString url)
@@ -40,28 +50,49 @@ void Monitor::newFile(QString url)
     Q_EMIT urlChanged();
 }
 
-QString Monitor::state() const
+QString Monitor::suspendState() const
 {
-    return m_running ?  QStringLiteral("Suspend") : QStringLiteral("Resume");
+    return m_suspended ?  QStringLiteral("Resume") : QStringLiteral("Suspend");
 }
 
-void Monitor::toggleState()
+void Monitor::toggleSuspendState()
 {
-    QString method;
+    Q_ASSERT(m_balooInterface != 0);
 
-    if (m_running) {
-        method = QStringLiteral("suspend");
-        m_running = false;
-    } else {
+    QString method;
+    if (m_suspended) {
         method = QStringLiteral("resume");
-        m_running = true;
+        m_suspended = false;
+    } else {
+        method = QStringLiteral("suspend");
+        m_suspended = true;
     }
 
-    QDBusMessage message = QDBusMessage::createMethodCall(QLatin1String("org.kde.baloo"),
-                                                          QLatin1String("/indexer"),
-                                                          QLatin1String("org.kde.baloo"),
-                                                          method);
-    QDBusConnection::sessionBus().call(message);
-    Q_EMIT stateChanged();
+    m_balooInterface->call(method);
+    Q_EMIT suspendStateChanged();
 }
+
+void Monitor::balooStarted()
+{
+    /*
+     * TODO: send a dbus signal to baloo to let it know montitor is running,
+     * use that signal in baloo to enable exporting urls being indexed
+     */
+
+    m_balooRunning = true;
+
+    //TODO: use interface generated from XML file
+    m_balooInterface = new QDBusInterface(QStringLiteral("org.kde.baloo"),
+                                            QStringLiteral("/indexer"),
+                                            QStringLiteral("org.kde.baloo"),
+                                            m_bus,
+                                            this);
+
+    QDBusReply<bool> suspended = m_balooInterface->call("isSuspended");
+    m_suspended = suspended.value();
+
+    Q_EMIT balooStateChanged();
+    Q_EMIT suspendStateChanged();
+}
+
 
