@@ -26,46 +26,53 @@ import QtQuick.Window 2.2
 import QtQuick.Layouts 1.1
 
 ApplicationWindow {
+    id: mainWindow
     title: qsTr("Baloo Monitor")
     width: 640
     height: 480
     visible: true
+    SystemPalette { id: myPalette; colorGroup: SystemPalette.Active }
 
-    GridLayout {
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.margins: 10
+    Rectangle {
+        anchors.fill: parent
+        color: myPalette.window
         visible: monitor.balooRunning
 
-        columns: 2
-        columnSpacing: 20
-        rowSpacing: 20
-
-        Text {
-            Layout.columnSpan: 2
+        Label {
             anchors.top: parent.top
-            anchors.margins: 10
-            x: 10
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 20
+
+            elide: Text.ElideMiddle
+
             id: url
             text: "Indexing: " + monitor.url
         }
 
+        RowLayout {
+            anchors.top: url.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 20
 
-        ProgressBar {
-            id: progress
-            Layout.fillWidth: true
-            indeterminate: true
-        }
+            spacing: 20
 
-        Button {
-            id: toggleButton
-            text: monitor.suspendState
-            onClicked: monitor.toggleSuspendState()
+            ProgressBar {
+                id: progress
+                Layout.fillWidth: true
+                indeterminate: true
+            }
+
+            Button {
+                id: toggleButton
+                text: monitor.suspendState
+                onClicked: monitor.toggleSuspendState()
+            }
         }
     }
 
-    Text {
+    Label {
         visible: !monitor.balooRunning
 
         anchors.fill: parent
