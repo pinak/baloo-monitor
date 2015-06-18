@@ -25,9 +25,6 @@ import QtQuick.Controls 1.3
 import QtQuick.Window 2.2
 import QtQuick.Layouts 1.1
 
-import org.kde.plasma.components 2.0 as PlasmaComponents
-import org.kde.plasma.extras 2.0 as PlasmaExtras
-
 ApplicationWindow {
     title: qsTr("Baloo Monitor")
     width: 640
@@ -45,7 +42,7 @@ ApplicationWindow {
         columnSpacing: 20
         rowSpacing: 20
 
-        PlasmaComponents.Label {
+        Text {
             Layout.columnSpan: 2
             anchors.top: parent.top
             anchors.margins: 10
@@ -55,25 +52,23 @@ ApplicationWindow {
         }
 
 
-        PlasmaComponents.ProgressBar {
+        ProgressBar {
             id: progress
             Layout.fillWidth: true
             indeterminate: true
         }
 
-        PlasmaComponents.Button {
+        Button {
             id: toggleButton
             text: monitor.suspendState
             onClicked: monitor.toggleSuspendState()
         }
     }
 
-    PlasmaExtras.Heading {
+    Text {
         visible: !monitor.balooRunning
 
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.verticalCenter: parent.verticalCenter
-
+        anchors.fill: parent
         text: qsTr("Baloo is not running!")
     }
 }
